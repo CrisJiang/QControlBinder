@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.12)
+project(qcontrolbinder)
+
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 1)
+set(CMAKE_CXX_STANDARD 20)
+
+# 添加编译选项，启用协程支持
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-std=c++20 -fcoroutines-ts)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-std=c++20 -fcoroutines)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/std:c++latest)
+endif()
+
+set(CMAKE_PREFIX_PATH E:/Env/QT/6.2.4/msvc2019_64)
+set(CMAKE_INCLUDE_CURRENT_DIR ON) # 添加build目录
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+
+add_subdirectory(./demo)
+add_subdirectory(./test)
+
+# compiler check
+if(MSVC)
+  list(APPEND my_cflags /wd4828 )
+  if (MSVC_VERSION GREATER 1925)
+		add_compile_options(/Zc:preprocessor /wd5105)
+    else()
+		add_compile_options(/experimental:preprocessor /wd5105)
+	endif()
+endif()
+
