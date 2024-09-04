@@ -1,7 +1,7 @@
 # QControlBinder
 
 QControlBinder is a simple binding library for QWidget controls and C++ POD (Plain Old Data) types, enabling MVVM (Model-View-ViewModel) binding functionality. By including the QControlBinder.hpp file, you can introduce two-way binding (between variables and widget controls) in your project.
-
+！[image](https://github.com/CrisJiang/QControlBinder/blob/main/demo.gif)
 ### First
 
 ```c++
