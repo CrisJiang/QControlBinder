@@ -2,6 +2,7 @@
 
 QControlBinder is a simple binding library for QWidget controls and C++ POD (Plain Old Data) types, enabling MVVM (Model-View-ViewModel) binding functionality. By including the QControlBinder.hpp file, you can introduce two-way binding (between variables and widget controls) in your project.
 ![image](https://github.com/CrisJiang/QControlBinder/blob/main/demo.gif)
+
 ### First
 
 ```c++
@@ -66,3 +67,37 @@ void MainWindow::Impl::bind2View(Ui::MainWindowClass* ui)
 ### MultiBind
 
 ### Watch
+
+use `watch` function to listen value change event
+
+```c++
+void MainWindow::Impl::bindWatch(Ui::MainWindowClass* ui)
+{
+	binder_.bindWith(ui->edit_add1, edit_add1_);
+    binder_(edit_add1_).watch([this]() {
+        label_addresult_ = edit_add1_ + edit_add2_;
+    });
+	binder_.bindWith(ui->edit_add2, edit_add2_);
+    binder_(edit_add2_).watch([this]() {
+        label_addresult_ = edit_add1_ + edit_add2_;
+    });
+    binder_.bindWith(ui->label_addresult, label_addresult_);
+
+	binder_.bindWith(ui->slider_watch, slider_watch_);
+    binder_(slider_watch_).watch([this]() {
+        label_percent_ = std::format("{}", (double)slider_watch_/100);
+        if (slider_watch_ > 10 && slider_watch_ < 20)
+            label_key_ = "red";
+        else if (slider_watch_ > 20 && slider_watch_ < 30)
+            label_key_ = "yellow";
+        else if (slider_watch_ > 30 && slider_watch_ < 40)
+            label_key_ = "green";
+        else if (slider_watch_ > 40 && slider_watch_ < 50)
+            label_key_ = "blue";
+        else if (slider_watch_ > 50 && slider_watch_ < 60)
+            label_key_ = "white";
+    });
+	binder_.bindWith(ui->label_percent, label_percent_);
+	binder_.bindWith(ui->label_key, label_key_);
+}
+```
