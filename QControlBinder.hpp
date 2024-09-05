@@ -26,10 +26,7 @@
 
 #include "utils/log.hpp"
 
-#define _ENABLE_VDATA_CLASS_ // 是否开启VData包装类，用于开启variablesSync: 同步更新变量值 ，forceUpdate：刷新绑定控件值
-
 static const int buttonGroupDefaultIndex = -2; // buttonGroup 如果不设置序号的话，默认开始为 -2
-
 class ControlListenrWarrper {
     using changedFunc                = std::function<void(const QVariant &, const QVariant &)>;
     using stdstringChangedFunc       = std::function<void(const std::string &, const std::string &)>;
@@ -137,6 +134,21 @@ public:
               // binder_ = qobject_cast<QControlBinder*>(parent);
           };
     virtual ~ControlBinder(){};
+    
+    template <typename T>
+    void updateVal(std::remove_reference<T>::type& val, std::shared_ptr<ControlListenrWarrper> warrper, T&& newVal) {
+        val = newVal;
+        warrper->executeCallback(std::forward<T>(newVal), warrper->getVal());
+        warrper->setVal(std::forward<T>(newVal));
+    };
+
+	template <>
+	void updateVal(std::string& val, std::shared_ptr<ControlListenrWarrper> warrper, std::string&& newVal) {
+		val = newVal;
+		warrper->executeCallback(newVal, warrper->getVal().toString().toStdString());
+		warrper->setVal(newVal);
+    };
+
     // 无法使用纯虚函数设计兼容不同的类型，退而求其次
     virtual bool makeConnect(QMetaObject::Connection &connection, std::shared_ptr<ControlListenrWarrper> &warrper,
                              QObject *object, int &val, QObject *receiver) {
@@ -171,10 +183,8 @@ public:
                      QObject *control, QString &val, QObject *receiver) override {
         QTextEdit *textEdit = qobject_cast<QTextEdit *>(control);
         if (textEdit) {
-            connection = QObject::connect(textEdit, &QTextEdit::textChanged, receiver, [&val, textEdit]() {
-                if (textEdit->toPlainText().isEmpty())
-                    return;
-                val = textEdit->toPlainText();
+            connection = QObject::connect(textEdit, &QTextEdit::textChanged, receiver, [&val, textEdit, this, warrper]() {
+                updateVal(val, warrper, textEdit->toPlainText());
             });
             return connection;
         } else {
@@ -191,7 +201,9 @@ public:
         QTabWidget *tab = qobject_cast<QTabWidget *>(control);
         if (tab) {
             connection =
-                QObject::connect(tab, &QTabWidget::currentChanged, receiver, [&val](int value) { val = value; });
+                QObject::connect(tab, &QTabWidget::currentChanged, receiver, [&val, this, warrper](int value) {
+                updateVal(val, warrper, value);
+            });
             return connection;
         } else {
             LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
@@ -208,7 +220,9 @@ public:
         QDoubleSpinBox *spinbox = qobject_cast<QDoubleSpinBox *>(control);
         if (spinbox) {
             connection = QObject::connect(spinbox, &QDoubleSpinBox::valueChanged, receiver,
-                                          [warrper, &val](double value) { val = value; });
+                                          [this, warrper, &val](double value) {
+                    updateVal(val, warrper, value);
+                });
             return connection;
         } else {
             LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
@@ -225,7 +239,9 @@ public:
         QSpinBox *spinbox = qobject_cast<QSpinBox *>(control);
         if (spinbox) {
             connection = QObject::connect(spinbox, &QSpinBox::valueChanged, receiver,
-                                          [warrper, &val](int value) { val = value; });
+                                          [this, warrper, &val](int value) {
+                    updateVal(val, warrper, value);
+                });
             return connection;
         } else {
             LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
@@ -241,9 +257,8 @@ public:
                      QObject *control, bool &val, QObject *receiver) override {
         QPushButton *pushbutton = qobject_cast<QPushButton *>(control);
         if (pushbutton) {
-            connection = QObject::connect(pushbutton, &QPushButton::clicked, receiver, [pushbutton, &val]() {
-                // pushbutton->setText(val?"开":"关");
-                val = !val;
+            connection = QObject::connect(pushbutton, &QPushButton::clicked, receiver, [this, warrper, pushbutton, &val]() {
+                updateVal(val, warrper, !val);
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -260,8 +275,8 @@ public:
                      QObject *control, int &val, QObject *receiver) override {
         QButtonGroup *buttonGroup = qobject_cast<QButtonGroup *>(control);
         if (buttonGroup) {
-            connection = QObject::connect(buttonGroup, &QButtonGroup::idClicked, receiver, [&val](int index) {
-                val = buttonGroupDefaultIndex - index;
+            connection = QObject::connect(buttonGroup, &QButtonGroup::idClicked, receiver, [this, warrper, &val](int index) {
+                updateVal(val, warrper, buttonGroupDefaultIndex - index);
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -284,8 +299,8 @@ public:
                      QObject *control, int &val, QObject *receiver) override {
         QComboBox *comboBox = qobject_cast<QComboBox *>(control);
         if (comboBox) {
-            connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [&val](int index) {
-                val = index;
+            connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [this, warrper, &val](int index) {
+                updateVal(val, warrper, index);
                 LOG_INFO("val={}", val);
             });
             return connection;
@@ -298,8 +313,8 @@ public:
                      QObject *control, bool &val, QObject *receiver) override {
         QComboBox *comboBox = qobject_cast<QComboBox *>(control);
         if (comboBox) {
-            connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [&val](int index) {
-                val = index;
+            connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [this, warrper, &val](int index) {
+                updateVal(val, warrper, index>0);
                 LOG_INFO("val={}", val);
             });
             return connection;
@@ -328,12 +343,8 @@ public:
                      QObject *control, int &val, QObject *receiver) override {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [lineEdit, &val, warrper]() {
-                if (lineEdit->text().isEmpty())
-                    return;
-                val = lineEdit->text().toInt();
-                warrper->executeCallback(val, warrper->getVal());
-                warrper->setVal(val);
+            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
+                updateVal(val, warrper, lineEdit->text().toInt());
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -346,12 +357,8 @@ public:
                      QObject *control, double &val, QObject *receiver) override {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [lineEdit, &val, warrper]() {
-                if (lineEdit->text().isEmpty())
-                    return;
-                val = lineEdit->text().toDouble();
-				warrper->executeCallback(val, warrper->getVal());
-				warrper->setVal(val);
+            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
+                updateVal(val, warrper, lineEdit->text().toDouble());
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -364,10 +371,8 @@ public:
                      QObject *control, std::string &val, QObject *receiver) override {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [lineEdit, &val, warrper]() {
-                val = lineEdit->text().toStdString();
-				warrper->executeCallback(val, warrper->getVal().toString().toStdString());
-				warrper->setVal(val);
+            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
+                updateVal(val, warrper, lineEdit->text().toStdString());
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -380,11 +385,9 @@ public:
                      QObject *control, QString &val, QObject *receiver) override {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [lineEdit, &val, warrper]() {
-                val = lineEdit->text();
-				warrper->executeCallback(val, warrper->getVal());
-				warrper->setVal(val);
-                LOG_INFO("val={}", val.toStdString());
+            connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
+                updateVal(val, warrper, lineEdit->text());
+                LOG_DEBUG("val={}", val.toStdString());
             });
             return connection;
         } else {
@@ -401,7 +404,6 @@ public:
     void getVal(QObject *control, double &val) override {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            // QString str = QString::number();
             val = lineEdit->text().toDouble();
         }
     }
@@ -426,8 +428,8 @@ public:
         QCheckBox *checkBox = qobject_cast<QCheckBox *>(control);
         if (checkBox) {
             LOG_DEBUG("checkBox.bind{}", checkBox->objectName().toStdString());
-            connection = QObject::connect(checkBox, &QCheckBox::stateChanged, receiver, [&val](bool state) {
-                val = state;
+            connection = QObject::connect(checkBox, &QCheckBox::stateChanged, receiver, [this, warrper, &val](bool state) {
+                updateVal(val, warrper, state);
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -450,8 +452,8 @@ public:
                      QObject *control, int &val, QObject *receiver) override {
         QSlider *slider = qobject_cast<QSlider *>(control);
         if (slider) {
-            connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [&val](int num) {
-                val = num;
+            connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [this, warrper, &val](int num) {
+                updateVal(val, warrper, num);
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -464,8 +466,8 @@ public:
                      QObject *control, double &val, QObject *receiver) override {
         QSlider *slider = qobject_cast<QSlider *>(control);
         if (slider) {
-            connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [&val](int num) {
-                val = (double)num / 100;
+            connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [this, warrper, &val](int num) {
+                updateVal(val, warrper, (double)num / 100);
                 LOG_DEBUG("val={}", val);
             });
             return connection;
@@ -556,8 +558,6 @@ public:
         auto            val     = &warper->getVal();
         QDoubleSpinBox *spinbox = qobject_cast<QDoubleSpinBox *>(control);
         if (spinbox) {
-            if (val->toDouble() == spinbox->value())
-                return;
             spinbox->setValue(val->toDouble());
         } else {
             LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
@@ -571,8 +571,6 @@ public:
         auto      val     = &warper->getVal();
         QSpinBox *spinbox = qobject_cast<QSpinBox *>(control);
         if (spinbox) {
-            if (val->toInt() == spinbox->value())
-                return;
             spinbox->setValue(val->toInt());
         } else {
             LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
@@ -633,18 +631,10 @@ public:
         auto       val      = &warper->getVal();
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
-            // bool focus = false;
-            // int cursorPos = 0;
             QString text;
-            //  判断是否double类型,如果是double类型,那么应该都格式化
             if (val->typeId() == QMetaType::Double) {
-                //  如果 edit 不为空 && val值和edit值相同
-                if (!lineEdit->text().isEmpty())
-                    return;
                 text = QString::number(val->value<double>(), warper->format, warper->len);
             } else if (val->typeId() == QMetaType::Int) {
-                if (!lineEdit->text().isEmpty())
-                    return;
                 text = QString::number(val->value<int>());
             } else if (val->typeId() == QMetaType::Bool) {
                 text = QString::number(val->value<bool>());
@@ -654,8 +644,6 @@ public:
                 text = val->toString();
             }
             lineEdit->setText(text);
-            // if (focus)
-            //	lineEdit->setCursorPosition(cursorPos);
         } else {
             LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
@@ -691,7 +679,6 @@ public:
     }
 };
 
-#ifdef _ENABLE_VDATA_CLASS_
 class VData {
 public:
     enum class DataType {
@@ -790,16 +777,12 @@ private:
 static size_t qHash(const VData &key, uint seed = 0) {
     return qHash(key.getPtrAddr(), seed);
 }
-#endif
+
 // 一个简单的Qt控件双向绑定类，信号槽实现，线程不安全
 class QControlBinder : public QObject {
     Q_OBJECT
 
-#ifdef _ENABLE_VDATA_CLASS_
     using VaribleControlMap = QHash<VData, QSet<QObject *>>;
-#else
-    using VaribleControlMap = QHash<const void *, QObject *>;
-#endif
 private:
     class Impl {
     public:
@@ -816,7 +799,6 @@ private:
         std::string       vStr_{""};
         QString           vQStr_{""};
 
-#ifdef _ENABLE_VDATA_CLASS_
         template <typename T> void notifyUpdater(VData &vData, const T &value) {
             if (varible_control_map.contains(vData)) {
                 auto controlSet = varible_control_map.value(vData);
@@ -829,7 +811,7 @@ private:
                 }
             }
         };
-#endif
+
         void emitUpdateControl(QObject *control) {
             emit thiz_->updateControl(control);
         };
@@ -886,7 +868,6 @@ public:
         auto listenWarrper = std::make_shared<ControlListenrWarrper>();
         listenWarrper->setVal(val);
         impl_->control_variant_map.insert(control, listenWarrper); // 维护监听
-#ifdef _ENABLE_VDATA_CLASS_
         auto vData = VData(&val);
         if (impl_->varible_control_map.contains(vData)) {
             impl_->varible_control_map[vData].insert(control);
@@ -895,9 +876,6 @@ public:
             controlSet.insert(control);
             impl_->varible_control_map.insert(vData, controlSet);
         }
-#else
-        varible_control_map.insert(static_cast<const void *>(&val), control);
-#endif
         emit updateControl(control);
     };
 
@@ -921,7 +899,7 @@ public:
         listenWarrper->len    = len;
         listenWarrper->setVal(val);
         impl_->control_variant_map.insert(control, std::move(listenWarrper)); // 维护监听
-#ifdef _ENABLE_VDATA_CLASS_
+
         auto vData = VData(&val);
         if (impl_->varible_control_map.contains(vData)) {
             impl_->varible_control_map[vData].insert(control);
@@ -930,9 +908,6 @@ public:
             controlSet.insert(control);
             impl_->varible_control_map.insert(vData, controlSet);
         }
-#else
-        varible_control_map.insert(static_cast<const void *>(&val), control);
-#endif
         emit updateControl(control);
     };
 
@@ -1004,14 +979,10 @@ public:
                 ++ite;
             }
         }
-#ifdef _ENABLE_VDATA_CLASS_
+
         auto vData = VData(&var);
         if (impl_->varible_control_map.contains(vData))
             impl_->varible_control_map.remove(vData);
-#else
-        if (varible_control_map.contains(static_cast<const void *>(&var)))
-            varible_control_map.remove(static_cast<const void *>(&var));
-#endif
     };
 
 signals:
