@@ -47,19 +47,19 @@ void MainWindow::Impl::bind2View(Ui::MainWindowClass* ui)
     binder_.bindWith(ui->lineEdit, lineEdit_);
     binder_.bindWith(ui->label_lineEdit, lineEdit_);
 
-	binder_.bindWith(ui->lineEdit_int, lineEdit_int_);
-	binder_.bindWith(ui->label_lineEdit_int, lineEdit_int_);
+    binder_.bindWith(ui->lineEdit_int, lineEdit_int_);
+    binder_.bindWith(ui->label_lineEdit_int, lineEdit_int_);
 
-	binder_.bindWith(ui->lineEdit_double, lineEdit_double_);
-	binder_.bindWith(ui->label_lineEdit_double, lineEdit_double_);
+    binder_.bindWith(ui->lineEdit_double, lineEdit_double_);
+    binder_.bindWith(ui->label_lineEdit_double, lineEdit_double_);
 
     binder_.bindWith(ui->textEdit, textEdit_);
     binder_.bindWith(ui->label_textEdit, textEdit_);
 
-	binder_.bindWith(ui->spinBox, spinBox_);
+    binder_.bindWith(ui->spinBox, spinBox_);
     binder_.bindWith(ui->label_spinBox, spinBox_);
 
-	binder_.bindWith(ui->doubleSpinBox, doubleSpinBox_);
+    binder_.bindWith(ui->doubleSpinBox, doubleSpinBox_);
     binder_.bindWith(ui->label_doubleSpinBox, doubleSpinBox_);
 }
 ```
@@ -73,17 +73,17 @@ use `watch` function to listen value change event
 ```c++
 void MainWindow::Impl::bindWatch(Ui::MainWindowClass* ui)
 {
-	binder_.bindWith(ui->edit_add1, edit_add1_);
+    binder_.bindWith(ui->edit_add1, edit_add1_);
     binder_(edit_add1_).watch([this]() {
         label_addresult_ = edit_add1_ + edit_add2_;
     });
-	binder_.bindWith(ui->edit_add2, edit_add2_);
+    binder_.bindWith(ui->edit_add2, edit_add2_);
     binder_(edit_add2_).watch([this]() {
         label_addresult_ = edit_add1_ + edit_add2_;
     });
     binder_.bindWith(ui->label_addresult, label_addresult_);
 
-	binder_.bindWith(ui->slider_watch, slider_watch_);
+    binder_.bindWith(ui->slider_watch, slider_watch_);
     binder_(slider_watch_).watch([this]() {
         label_percent_ = std::format("{}", (double)slider_watch_/100);
         if (slider_watch_ > 10 && slider_watch_ < 20)
@@ -97,7 +97,7 @@ void MainWindow::Impl::bindWatch(Ui::MainWindowClass* ui)
         else if (slider_watch_ > 50 && slider_watch_ < 60)
             label_key_ = "white";
     });
-	binder_.bindWith(ui->label_percent, label_percent_);
-	binder_.bindWith(ui->label_key, label_key_);
+    binder_.bindWith(ui->label_percent, label_percent_);
+    binder_.bindWith(ui->label_key, label_key_);
 }
 ```
