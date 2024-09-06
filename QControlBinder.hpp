@@ -24,8 +24,6 @@
 #include <set>
 #include <chrono>
 
-#include "utils/log.hpp"
-
 static const int buttonGroupDefaultIndex = -2; // buttonGroup 如果不设置序号的话，默认开始为 -2
 class ControlListenrWarrper {
     using changedFunc                = std::function<void(const QVariant &, const QVariant &)>;
@@ -188,7 +186,7 @@ public:
             });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -206,7 +204,7 @@ public:
             });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -225,7 +223,7 @@ public:
                 });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -244,7 +242,7 @@ public:
                 });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -259,11 +257,10 @@ public:
         if (pushbutton) {
             connection = QObject::connect(pushbutton, &QPushButton::clicked, receiver, [this, warrper, pushbutton, &val]() {
                 updateVal(val, warrper, !val);
-                LOG_DEBUG("val={}", val);
             });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -277,11 +274,10 @@ public:
         if (buttonGroup) {
             connection = QObject::connect(buttonGroup, &QButtonGroup::idClicked, receiver, [this, warrper, &val](int index) {
                 updateVal(val, warrper, buttonGroupDefaultIndex - index);
-                LOG_DEBUG("val={}", val);
             });
             return connection;
         } else {
-            LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_INFO("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -301,11 +297,10 @@ public:
         if (comboBox) {
             connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [this, warrper, &val](int index) {
                 updateVal(val, warrper, index);
-                LOG_INFO("val={}", val);
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -315,11 +310,10 @@ public:
         if (comboBox) {
             connection = QObject::connect(comboBox, &QComboBox::currentIndexChanged, receiver, [this, warrper, &val](int index) {
                 updateVal(val, warrper, index>0);
-                LOG_INFO("val={}", val);
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -344,12 +338,11 @@ public:
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
             connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
-                updateVal(val, warrper, lineEdit->text().toInt());
-                LOG_DEBUG("val={}", val);
+                updateVal(val, warrper, lineEdit->text().toInt());         
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -358,12 +351,11 @@ public:
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
             connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
-                updateVal(val, warrper, lineEdit->text().toDouble());
-                LOG_DEBUG("val={}", val);
+                updateVal(val, warrper, lineEdit->text().toDouble());                
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -372,12 +364,11 @@ public:
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(control);
         if (lineEdit) {
             connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
-                updateVal(val, warrper, lineEdit->text().toStdString());
-                LOG_DEBUG("val={}", val);
+                updateVal(val, warrper, lineEdit->text().toStdString());                
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -387,11 +378,10 @@ public:
         if (lineEdit) {
             connection = QObject::connect(lineEdit, &QLineEdit::textChanged, receiver, [this, lineEdit, &val, warrper]() {
                 updateVal(val, warrper, lineEdit->text());
-                LOG_DEBUG("val={}", val.toStdString());
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -427,14 +417,12 @@ public:
                      QObject *control, bool &val, QObject *receiver) override {
         QCheckBox *checkBox = qobject_cast<QCheckBox *>(control);
         if (checkBox) {
-            LOG_DEBUG("checkBox.bind{}", checkBox->objectName().toStdString());
             connection = QObject::connect(checkBox, &QCheckBox::stateChanged, receiver, [this, warrper, &val](bool state) {
                 updateVal(val, warrper, state);
-                LOG_DEBUG("val={}", val);
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -454,11 +442,10 @@ public:
         if (slider) {
             connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [this, warrper, &val](int num) {
                 updateVal(val, warrper, num);
-                LOG_DEBUG("val={}", val);
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -468,11 +455,10 @@ public:
         if (slider) {
             connection = QObject::connect(slider, &QSlider::valueChanged, receiver, [this, warrper, &val](int num) {
                 updateVal(val, warrper, (double)num / 100);
-                LOG_DEBUG("val={}", val);
             });
             return connection;
         } else {
-            LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
+            //LOG_DEBUG("Error connect control:{}) failed", control->objectName().toStdString());
         }
         return connection;
     }
@@ -507,7 +493,7 @@ public:
             }
             textEdit->setText(text);
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -522,7 +508,7 @@ public:
                 return;
             tab->setCurrentIndex(val->toInt());
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -547,7 +533,7 @@ public:
             }
             label->setText(text);
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -560,7 +546,7 @@ public:
         if (spinbox) {
             spinbox->setValue(val->toDouble());
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -573,7 +559,7 @@ public:
         if (spinbox) {
             spinbox->setValue(val->toInt());
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -587,7 +573,7 @@ public:
             bool isOpen = val->toBool();
             pushbutton->setText(isOpen ? "开" : "关");
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -603,10 +589,10 @@ public:
             if (button) {
                 button->setChecked(true);
             } else {
-                LOG_INFO("buttonGroup not find id.{}", id);
+                //LOG_INFO("buttonGroup not find id.{}", id);
             }
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -618,9 +604,8 @@ public:
         QComboBox *comboBox = qobject_cast<QComboBox *>(control);
         if (comboBox) {
             comboBox->setCurrentIndex(val->toInt());
-            LOG_DEBUG("setCurrentIndex={}", val->toInt());
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -645,7 +630,7 @@ public:
             }
             lineEdit->setText(text);
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -658,7 +643,7 @@ public:
         if (checkBox) {
             checkBox->setChecked(val->toBool());
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -674,7 +659,7 @@ public:
             else if (val->typeId() == QMetaType::Double)
                 slider->setValue(val->toDouble() * 100);
         } else {
-            LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
+            //LOG_DEBUG("Error(control:{}, value:{}) failed", control->objectName().toStdString(), val->typeName());
         }
     }
 };
@@ -992,12 +977,6 @@ signals:
 
 private slots:
     void tryUpdateView() {
-        //  遍历变量，观测变量的值是否变化
-        //  如果变量的值变化，应该通知控件更新
-        //  如果是控件流向变量的改变，则不应该再本事件中触发更新
-        //  [1] 状态标记，如果是来自界面的操作，则不触发更新
-        //  [2] 建立update表，防止update对象总是创建
-        //  [3] 明确数据流向顺序 先-> 数据 > Ui 而后 Ui -> 数据
         for (auto &vData : impl_->varible_control_map.keys()) {
             auto &controlSet = impl_->varible_control_map[vData]; //  找到变量
             for (const auto control : controlSet) {
@@ -1014,7 +993,6 @@ private slots:
                             if (updater) {
                                 updater->update(control, variant.get());
                             }
-                            // notifyUpdater(vData, vInt_);
                         }
                     }
 
@@ -1029,7 +1007,6 @@ private slots:
                             if (updater) {
                                 updater->update(control, variant.get());
                             }
-                            // notifyUpdater(vData, vDouble_);
                         }
                     }
                     break;
@@ -1043,7 +1020,6 @@ private slots:
                             if (updater) {
                                 updater->update(control, variant.get());
                             }
-                            // notifyUpdater(vData, vBool_);
                         }
                     }
                     break;
@@ -1058,7 +1034,6 @@ private slots:
                             if (updater) {
                                 updater->update(control, variant.get());
                             }
-                            // notifyUpdater(vData, vStr_);
                         }
                     }
                     break;
@@ -1072,7 +1047,6 @@ private slots:
                             if (updater) {
                                 updater->update(control, variant.get());
                             }
-                            // notifyUpdater(vData, vStr_);
                         }
                     }
                     break;
@@ -1097,7 +1071,7 @@ private slots:
             if (updater) {
                 updater->update(control, variant.get());
             } else {
-                LOG_DEBUG("control:{} not find updater", control->objectName().toStdString());
+                //LOG_DEBUG("control:{} not find updater", control->objectName().toStdString());
             }
         }
     };
