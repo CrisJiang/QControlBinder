@@ -46,19 +46,19 @@ void MainWindow::Impl::bind2View(Ui::MainWindowClass* ui)
     binder_.bindWith(ui->lineEdit, lineEdit_);
     binder_.bindWith(ui->label_lineEdit, lineEdit_);
 
-	binder_.bindWith(ui->lineEdit_int, lineEdit_int_);
-	binder_.bindWith(ui->label_lineEdit_int, lineEdit_int_);
+    binder_.bindWith(ui->lineEdit_int, lineEdit_int_);
+    binder_.bindWith(ui->label_lineEdit_int, lineEdit_int_);
 
-	binder_.bindWith(ui->lineEdit_double, lineEdit_double_);
-	binder_.bindWith(ui->label_lineEdit_double, lineEdit_double_);
+    binder_.bindWith(ui->lineEdit_double, lineEdit_double_);
+    binder_.bindWith(ui->label_lineEdit_double, lineEdit_double_);
 
     binder_.bindWith(ui->textEdit, textEdit_);
     binder_.bindWith(ui->label_textEdit, textEdit_);
 
-	binder_.bindWith(ui->spinBox, spinBox_);
+    binder_.bindWith(ui->spinBox, spinBox_);
     binder_.bindWith(ui->label_spinBox, spinBox_);
 
-	binder_.bindWith(ui->doubleSpinBox, doubleSpinBox_);
+    binder_.bindWith(ui->doubleSpinBox, doubleSpinBox_);
     binder_.bindWith(ui->label_doubleSpinBox, doubleSpinBox_);
 }
 ```
